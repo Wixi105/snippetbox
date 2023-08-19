@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -36,10 +37,21 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 		return
 	}
 
-	w.WriteHeader(status)
+	buf := new(bytes.Buffer)
 
-	err := ts.ExecuteTemplate(w, "base", data)
+	err := ts.ExecuteTemplate(buf, "base", data)
 	if err != nil {
 		app.serverError(w, err)
+		return
 	}
+
+	w.WriteHeader(status)
+	
+	buf.WriteTo(w)
 }
+
+// we need to make the template render a two-stage process. 
+//First, we should make a ‘trial’ render by writing the template into a buffer. 
+//If this fails, we can respond to the user with an error message. 
+//But if it works, we can then write the contents of the buffer to our http.ResponseWriter .
+
