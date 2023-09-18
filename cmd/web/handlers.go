@@ -70,6 +70,7 @@ func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseForm()
+
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
@@ -100,7 +101,7 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		form.FieldErrors["content"] = "This field cannot be blank."
 	}
 
-	if expires != 1 && expires != 7 && expires != 365 {
+	if form.Expires != 1 && form.Expires != 7 && form.Expires != 365 {
 		form.FieldErrors["expires"] = "This field must equal 1,7 or 365"
 	}
 
@@ -112,7 +113,7 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	id, err := app.snippets.Insert(form.Title, form.Content, expires)
+	id, err := app.snippets.Insert(form.Title, form.Content, form.Expires)
 	if err != nil {
 		app.serverError(w, err)
 		return
