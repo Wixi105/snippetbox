@@ -2,9 +2,12 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime/debug"
+
+	"github.com/go-playground/form/v4"
 )
 
 // The serverError helper writes an error message and stack trace to the errorLog,
@@ -46,12 +49,33 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 	}
 
 	w.WriteHeader(status)
-	
+
 	buf.WriteTo(w)
 }
 
-// we need to make the template render a two-stage process. 
-//First, we should make a ‘trial’ render by writing the template into a buffer. 
-//If this fails, we can respond to the user with an error message. 
+// we need to make the template render a two-stage process.
+//First, we should make a ‘trial’ render by writing the template into a buffer.
+//If this fails, we can respond to the user with an error message.
 //But if it works, we can then write the contents of the buffer to our http.ResponseWriter .
 
+
+func (app *application) decodePostForm(r *http.Request, dst any) error {
+	err := r.ParseForm()
+	if err != nil {
+		return err
+	}
+
+	err = app.formDecoder.Decode(dst, r.PostForm)
+	if err != nil {
+		// If we try to use an invalid target destination, the Decode() method
+		// will return an error with the type *form.InvalidDecoderError.We use
+		// errors.As() to check for this and raise a panic rather than returning
+		// the error.
+		var invalidDecoderError *form.InvalidDecoderError
+		if errors.As(err, &invalidDecoderError) {
+			panic(err)
+		}
+		return err
+	}
+	return nil
+}
