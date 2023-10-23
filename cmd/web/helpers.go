@@ -58,7 +58,6 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 //If this fails, we can respond to the user with an error message.
 //But if it works, we can then write the contents of the buffer to our http.ResponseWriter .
 
-
 func (app *application) decodePostForm(r *http.Request, dst any) error {
 	err := r.ParseForm()
 	if err != nil {
